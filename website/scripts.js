@@ -84,9 +84,8 @@ function showDNI(dniURL){
 }
 
 function loadGastos(){
-    //var queryParam = '?dni=' + document.getElementById("dni").value;
-    //fetch(gastosUrl + queryParam)
-    fetch(gastosUrl)
+    var queryParam = '?dni=' + document.getElementById("dni").value;
+    fetch(gastosUrl + queryParam)
       .then((response) => {
         return response.json();
       })
