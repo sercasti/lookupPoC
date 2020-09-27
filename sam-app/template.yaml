@@ -1,0 +1,104 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Creates the lambdas, api gateway, DynamoDB table and IAM role necessary to run this PoC
+
+Parameters:
+  S3BucketName:
+    Description: S3 bucket name, where personal information is already stored
+    Type: String
+    MinLength: '3'
+    MaxLength: '63' 
+
+Resources:
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      AttributeDefinitions: 
+        - AttributeName: dni
+          AttributeType: S
+      KeySchema: 
+        - AttributeName: dni
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      TableName: "personas"
+    
+  BuscaPersonaLambdaFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: ../lambdas/buscarPersona
+      Description: "Function Lambda para buscar persona por DNI"
+      FunctionName: "buscaPersona"
+      Handler: "buscarPersona.lambda_handler"
+      MemorySize: 256
+      Role: !GetAtt "LambdaIAMRole.Arn"
+      Runtime: python3.7
+      Timeout: 20
+      Environment:
+        Variables:
+          DYNAMO_TABLE: "personas"
+          S3_BUCKET: !Ref S3BucketName
+      Events:
+        BuscarPersonas:
+          Type: Api
+          Properties:
+            Path: /buscarPersona
+            Method: get
+
+  BuscaGastosLambdaFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: ../lambdas/buscarGastos
+      Description: "Function Lambda para buscar gastos por DNI"
+      FunctionName: "buscaGastos"
+      Handler: "buscarGastos.lambda_handler"
+      MemorySize: 256
+      Runtime: python3.7
+      Timeout: 20
+      Events:
+        BuscarPersonas:
+          Type: Api
+          Properties:
+            Path: /buscarGastos
+            Method: get
+
+  LambdaIAMRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - "sts:AssumeRole"
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+      Policies:
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                  - "dynamodb:GetItem"
+                  - "s3:GetObject"
+                  - "s3:ListBucket"
+                Effect: "Allow"
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/BuscaPersonaLambdaFunction:*"
+                  - !Sub "arn:aws:s3:::${S3BucketName}"
+                  - !Sub "arn:aws:s3:::${S3BucketName}/*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/personas"
+          PolicyName: "lambda"
+
+Outputs:
+  URLProdApi:
+    Description: "API Gateway endpoint URL for Prod stage on buscarPersona function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/buscarPersona?dni="
+  LambdaFunction:
+    Description: "Lambda Function ARN"
+    Value: !GetAtt BuscaPersonaLambdaFunction.Arn
+  LambdaIAMRole:
+    Description: "IAM Role created"
+    Value: !GetAtt LambdaIAMRole.Arn
