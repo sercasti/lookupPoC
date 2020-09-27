@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Buscador Documentación</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="default.css" rel="stylesheet" type="text/css">
+    <script src="scripts.js" type="text/javascript"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>Buscador Documentación</h1>
+        <p style="text-align: right;">powered by AWS</p>
+    </div>
+    
+    <div class="navbar">
+        <a href="#">Buscar Personas</a>
+        <a href="#" class="right">Ayuda</a>
+    </div>
+
+    <div class="row">
+        <div class="side">
+            <h2>Búsqueda información</h2>
+            <form onsubmit="event.preventDefault(); submitDNI();">
+                <label for="dni">DNI</label>
+                <input type="text" id="dni" name="dni" placeholder="Nro. documento">
+                <input type="submit" id="submitDni" value="Submit" >
+            </form>
+        </div>
+        <div class="main">
+            <div id="dataContainer" style="visibility:hidden;">
+                <h2>DNI</h2>
+                <h5 id="personaBrief"></h5>
+                <div id="dniImage">
+                </div>
+                <h3>Datos Personales</h3>
+                <table id="persona">
+                </table>
+                <h3>Gastos</h3>
+                <div class="scrollit">
+                    <table id="gastos">
+                    </table>
+                </div>
+                <div id="personaFiles">
+                    <h3>Archivos</h3>
+                    <input type="text" id="myInput" onkeyup="searchFiles()" placeholder="Search for file..">
+                    <table id="files">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
