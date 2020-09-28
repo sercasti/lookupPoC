@@ -3,7 +3,7 @@ gastosUrl = 'https://nij0bdszf8.execute-api.us-east-1.amazonaws.com/default/busc
 personaUrl = 'https://nij0bdszf8.execute-api.us-east-1.amazonaws.com/default/buscarPersonas';
 
 function submitDNI(){
-  cleanDNIContainer();
+  cleanOutputs();
   loadPersona();
   loadGastos();
   document.getElementById("dataContainer").style.visibility = 'visible';
@@ -13,10 +13,17 @@ function loadPersona(){
     var queryParam = '?dni=' + document.getElementById("dni").value;
     fetch(personaUrl + queryParam)
       .then((response) => {
-        return response.json();
+        if(response.ok){
+          return response.json();
+        } else {
+          document.getElementById("dataContainer").style.visibility = 'hidden';
+          return null;
+        }
       })
       .then((data) => {
-        buildPersona(data);
+        if(data != null){
+          buildPersona(data);
+        }
       });
 }
 
@@ -66,32 +73,40 @@ function buildPersona(results){
     }
 }
 
-function cleanDNIContainer(){
+function cleanOutputs(){
   var container = document.getElementById("dniImage");
   if(container.childNodes.length > 0){
     container.removeChild(container.childNodes[0]);
     container.style.visibility = 'hidden';
   }
+  var personaBrief = document.getElementById("personaBrief");
+  personaBrief.innerHTML = "";
+  var personaTable = document.getElementById("persona");
+  personaTable.innerHTML = "";
+  var filesTable = document.getElementById("files");
+  filesTable.innerHTML = "";
+  var gastosTable = document.getElementById("gastos");
+  gastosTable.innerHTML = "";
 }
 
 function showDNI(dniURL){
-    var dniImgURL = document.createElement("img"); 
-    dniImgURL.src = dniURL;
-    dniImgURL.setAttribute("height", "200");
-    dniImgURL.setAttribute("width", "400");
-    document.getElementById("dniImage").appendChild(dniImgURL);
-    document.getElementById("dniImage").style.visibility = 'visible';
+  var dniImgURL = document.createElement("img"); 
+  dniImgURL.src = dniURL;
+  dniImgURL.setAttribute("height", "200");
+  dniImgURL.setAttribute("width", "400");
+  document.getElementById("dniImage").appendChild(dniImgURL);
+  document.getElementById("dniImage").style.visibility = 'visible';
 }
 
 function loadGastos(){
-    var queryParam = '?dni=' + document.getElementById("dni").value;
-    fetch(gastosUrl + queryParam)
-      .then((response) => {
-        return response.json();
-      })
-      .then((data) => {
-        buildGastos(data);
-      });
+  var queryParam = '?dni=' + document.getElementById("dni").value;
+  fetch(gastosUrl + queryParam)
+    .then((response) => {
+      return response.json();
+    })
+    .then((data) => {
+      buildGastos(data);
+    });
 }
 
 function buildGastos(results){

@@ -1,7 +1,6 @@
 import boto3
 import json
 import os
-
 from datetime import datetime
 from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 
@@ -11,12 +10,14 @@ s3bucketName = os.environ['S3_BUCKET']
 s3_client = boto3.client('s3')
 dynamo = boto3.client('dynamodb')
 
-
 def lambda_handler(event, context):
     dniParam = event["queryStringParameters"]['dni'];
     dynamoData = dynamo.get_item(
                         TableName=tableName,
                         Key={'dni': {'S': dniParam}});
+
+    if not('Item' in dynamoData):
+        return not_found();
 
     response = {};
     response['personData'] = from_dynamodb_to_json(dynamoData['Item']);
@@ -50,6 +51,17 @@ def lambda_handler(event, context):
         },
     }
 
+def not_found():
+    return {
+        'statusCode': '404',
+        'headers': {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'OPTIONS,GET'
+        },
+    }
+    
 def from_dynamodb_to_json(item):
     d = TypeDeserializer()
     return {k: d.deserialize(value=v) for k, v in item.items()}
